@@ -1,0 +1,39 @@
+.category-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 20px 20px 8px;
+  justify-content: center;
+}
+
+.category-filter__chip {
+  padding: 6px 14px;
+  border: 2px solid var(--border);
+  background: #fff;
+  color: var(--fg);
+  font-family: "Space Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.category-filter__chip:hover {
+  background: var(--yellow);
+  box-shadow: none;
+  transform: translate(2px, 2px);
+}
+
+.category-filter__chip--active {
+  background: var(--fg);
+  color: var(--bg);
+  box-shadow: none;
+  transform: translate(2px, 2px);
+}
+
+.category-filter__chip--active:hover {
+  background: var(--fg);
+  color: var(--yellow);
+}

@@ -1,0 +1,240 @@
+/* ===== Landing Page ===== */
+
+.landing {
+  min-height: 100vh;
+  background: var(--bg);
+  overflow-x: hidden;
+}
+
+/* ----- Top Bar ----- */
+
+.landing__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 32px;
+  background: var(--yellow);
+}
+
+.landing__topbar-btn {
+  padding: 8px 24px;
+  font-family: "Space Mono", monospace;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  border: var(--border-w) solid var(--border);
+  background: #fff;
+  color: var(--fg);
+  box-shadow: var(--shadow-sm);
+}
+
+.landing__topbar-btn:hover {
+  background: var(--blue);
+  box-shadow: none;
+  transform: translate(2px, 2px);
+}
+
+.landing__topbar-btn--signup {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.landing__topbar-btn--signup:hover {
+  background: var(--pink);
+  color: var(--fg);
+}
+
+/* ----- Hero ----- */
+
+.landing__hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 85vh;
+  padding: 60px 32px;
+  background: var(--yellow);
+  border-bottom: var(--border-w) solid var(--border);
+  overflow: hidden;
+}
+
+.landing__hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 640px;
+  text-align: center;
+}
+
+.landing__title {
+  font-size: clamp(56px, 10vw, 96px);
+  font-weight: 700;
+  line-height: 1;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: -3px;
+  color: var(--fg);
+}
+
+.landing__tagline {
+  font-size: clamp(18px, 3vw, 26px);
+  font-weight: 700;
+  margin: 16px 0 0;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  color: var(--fg);
+}
+
+.landing__subtitle {
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 20px 0 0;
+  color: #333;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.landing__cta-row {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 36px;
+}
+
+.landing__cta {
+  padding: 14px 32px;
+  font-family: "Space Mono", monospace;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  border: var(--border-w) solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.landing__cta:hover {
+  box-shadow: none;
+  transform: translate(4px, 4px);
+}
+
+.landing__cta--primary {
+  background: var(--fg);
+  color: var(--yellow);
+}
+
+.landing__cta--secondary {
+  background: #fff;
+  color: var(--fg);
+}
+
+.landing__hero-spool {
+  position: absolute;
+  bottom: -40px;
+  right: -20px;
+  width: clamp(180px, 25vw, 320px);
+  opacity: 0.12;
+  pointer-events: none;
+  z-index: 1;
+  transform: rotate(-15deg);
+}
+
+/* ----- About / How It Works ----- */
+
+.landing__about {
+  padding: 80px 32px;
+  background: var(--bg);
+}
+
+.landing__section-title {
+  text-align: center;
+  font-size: clamp(28px, 5vw, 40px);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin: 0 0 48px;
+}
+
+.landing__steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.landing__step {
+  padding: 28px 24px;
+  border: var(--border-w) solid var(--border);
+  box-shadow: var(--shadow);
+  background: #fff;
+}
+
+.landing__step--pink { border-top: 6px solid var(--pink); }
+.landing__step--blue { border-top: 6px solid var(--blue); }
+.landing__step--lime { border-top: 6px solid var(--lime); }
+
+.landing__step-num {
+  display: inline-block;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--fg);
+  opacity: 0.15;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.landing__step h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.landing__step p {
+  margin: 0;
+  font-size: 14px;
+  color: #555;
+  line-height: 1.6;
+}
+
+/* ----- Try It Out / Demo ----- */
+
+.landing__example {
+  padding: 80px 32px;
+  background: var(--fg);
+  color: var(--bg); 
+  border-top: var(--border-w) solid var(--border);
+  border-bottom: var(--border-w) solid var(--border);
+}
+
+/* ----- Footer ----- */
+
+.landing__footer {
+  padding: 24px 32px;
+  background: var(--yellow);
+  border-top: var(--border-w) solid var(--border);
+}
+
+.landing__footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.landing__footer-logo {
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.5px;
+}
+
+.landing__footer-text {
+  font-size: 12px;
+  color: #555;
+}

@@ -1,0 +1,54 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #FFFDF5;
+  --fg: #1a1a1a;
+  --border: #1a1a1a;
+  --yellow: #FFE500;
+  --pink: #FF6B9D;
+  --blue: #4ECDC4;
+  --lime: #C4F751;
+  --orange: #FF8A50;
+  --shadow: 4px 4px 0 #1a1a1a;
+  --shadow-sm: 2px 2px 0 #1a1a1a;
+  --shadow-lg: 6px 6px 0 #1a1a1a;
+  --border-w: 3px;
+  --radius: 4px;
+
+  font-family: "Space Mono", monospace;
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--fg);
+  background-color: var(--bg);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+::selection {
+  background: var(--yellow);
+  color: var(--fg);
+}
+
+a {
+  color: var(--fg);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  background: var(--yellow);
+}

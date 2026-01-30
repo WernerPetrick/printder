@@ -1,0 +1,77 @@
+.card-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  padding: 24px 20px;
+}
+
+.card-stack__cards {
+  position: relative;
+  width: 420px;
+  max-width: 90vw;
+  height: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-stack__actions {
+  display: flex;
+  gap: 24px;
+}
+
+.card-stack__btn {
+  width: 72px;
+  height: 72px;
+  border: var(--border-w) solid var(--border);
+  background: #fff;
+  font-size: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+  font-family: "Space Mono", monospace;
+}
+
+.card-stack__btn:hover {
+  box-shadow: none;
+  transform: translate(4px, 4px);
+}
+
+.card-stack__btn--nope {
+  background: var(--pink);
+}
+
+.card-stack__btn--nope:hover {
+  background: #ff4f85;
+}
+
+.card-stack__btn--like {
+  background: var(--lime);
+}
+
+.card-stack__btn--like:hover {
+  background: #b8eb3f;
+}
+
+.card-stack__empty {
+  text-align: center;
+  color: var(--fg);
+  padding: 80px 20px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.card-stack__empty h3 {
+  font-size: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.card-stack__empty p {
+  color: #666;
+  font-size: 14px;
+}

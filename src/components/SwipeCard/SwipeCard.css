@@ -1,0 +1,111 @@
+.swipe-card {
+  position: absolute;
+  width: 420px;
+  max-width: 90vw;
+  background: #fff;
+  border: var(--border-w) solid var(--border);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  cursor: grab;
+  user-select: none;
+}
+
+.swipe-card:active {
+  cursor: grabbing;
+}
+
+.swipe-card--top {
+  z-index: 2;
+}
+
+.swipe-card__image {
+  position: relative;
+  width: 100%;
+  height: 340px;
+  overflow: hidden;
+  background: #f0ece2;
+  border-bottom: var(--border-w) solid var(--border);
+}
+
+.swipe-card__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.swipe-card__stamp {
+  position: absolute;
+  top: 20px;
+  padding: 6px 18px;
+  border: 4px solid;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  pointer-events: none;
+  font-family: "Space Mono", monospace;
+}
+
+.swipe-card__stamp--like {
+  right: 20px;
+  color: var(--fg);
+  border-color: var(--fg);
+  background: var(--lime);
+  transform: rotate(12deg);
+}
+
+.swipe-card__stamp--nope {
+  left: 20px;
+  color: var(--fg);
+  border-color: var(--fg);
+  background: var(--pink);
+  transform: rotate(-12deg);
+}
+
+.swipe-card__info {
+  padding: 14px 18px 18px;
+}
+
+.swipe-card__title {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.swipe-card__author {
+  margin: 0 0 10px;
+  color: #666;
+  font-size: 12px;
+}
+
+.swipe-card__category {
+  display: inline-block;
+  padding: 3px 10px;
+  background: var(--blue);
+  color: var(--fg);
+  border: 2px solid var(--border);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.swipe-card__stats {
+  display: flex;
+  gap: 16px;
+  color: #555;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.swipe-card__description {
+  margin: 0;
+  color: #666;
+  font-size: 12px;
+  line-height: 1.5;
+}
