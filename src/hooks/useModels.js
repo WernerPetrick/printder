@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { getModels, getUserSwipes } from "../services/appwrite";
 import { useAuth } from "./useAuth";
 
@@ -12,6 +12,10 @@ export function useModels(category = null) {
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
 
+  // Keep a ref so fetchMore always reads the latest values
+  const stateRef = useRef({ offset, hasMore, swipedIds });
+  stateRef.current = { offset, hasMore, swipedIds };
+
   // Load user's existing swipes on mount
   useEffect(() => {
     if (!user) return;
@@ -24,19 +28,49 @@ export function useModels(category = null) {
       .catch(console.error);
   }, [user]);
 
-  const fetchModels = useCallback(async () => {
-    if (!user || !hasMore) return;
+  // Reset and fetch when category changes (also handles initial load)
+  useEffect(() => {
+    if (!user) return;
+
+    setOffset(0);
+    setModels([]);
+    setHasMore(true);
+    setLoading(true);
+
+    getModels({
+      category,
+      limit: BATCH_SIZE,
+      offset: 0,
+    })
+      .then((result) => {
+        const swiped = stateRef.current.swipedIds;
+        const newModels = result.documents.filter((doc) => !swiped.has(doc.$id));
+
+        if (newModels.length === 0) {
+          setHasMore(false);
+        } else {
+          setModels(newModels);
+          setOffset(BATCH_SIZE);
+        }
+      })
+      .catch((err) => console.error("Failed to fetch models:", err))
+      .finally(() => setLoading(false));
+  }, [user, category]);
+
+  // Fetch more (used by CardStack when running low)
+  const fetchMore = useCallback(async () => {
+    const { offset: currentOffset, hasMore: canFetch, swipedIds: swiped } = stateRef.current;
+    if (!user || !canFetch) return;
 
     setLoading(true);
     try {
       const result = await getModels({
         category,
-        excludeIds: [...swipedIds],
         limit: BATCH_SIZE,
-        offset,
+        offset: currentOffset,
       });
 
-      const newModels = result.documents.filter((doc) => !swipedIds.has(doc.$id));
+      const newModels = result.documents.filter((doc) => !swiped.has(doc.$id));
 
       if (newModels.length === 0) {
         setHasMore(false);
@@ -49,32 +83,18 @@ export function useModels(category = null) {
     } finally {
       setLoading(false);
     }
-  }, [user, category, swipedIds, offset, hasMore]);
-
-  // Initial fetch
-  useEffect(() => {
-    if (user && models.length === 0) {
-      fetchModels();
-    }
-  }, [user]);
+  }, [user, category]);
 
   const markSwiped = useCallback((modelId) => {
     setSwipedIds((prev) => new Set([...prev, modelId]));
     setModels((prev) => prev.filter((m) => m.$id !== modelId));
   }, []);
 
-  const refetch = useCallback(() => {
-    setOffset(0);
-    setModels([]);
-    setHasMore(true);
-  }, []);
-
   return {
     models,
     loading,
     hasMore,
-    fetchMore: fetchModels,
+    fetchMore,
     markSwiped,
-    refetch,
   };
 }

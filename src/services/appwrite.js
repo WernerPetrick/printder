@@ -33,15 +33,11 @@ export async function getCurrentUser() {
 }
 
 // Database helpers
-export async function getModels({ category = null, excludeIds = [], limit = 10, offset = 0 }) {
+export async function getModels({ category = null, limit = 10, offset = 0 }) {
   const queries = [Query.limit(limit), Query.offset(offset), Query.orderDesc("$createdAt")];
 
   if (category) {
     queries.push(Query.equal("category", category));
-  }
-
-  if (excludeIds.length > 0) {
-    queries.push(Query.notEqual("$id", excludeIds));
   }
 
   return databases.listDocuments(DATABASE_ID, MODELS_COLLECTION_ID, queries);
