@@ -4,8 +4,8 @@ import { Agent, fetch as undiciFetch } from "undici";
 const PRINTABLES_API = "https://api.printables.com/graphql/";
 const PRINTABLES_CDN = "https://media.printables.com";
 const BATCH_SIZE = 100;
-const DELAY_MS = 500;
-const MAX_RETRIES = 3;
+const DELAY_MS = 1500;
+const MAX_RETRIES = 5;
 
 // Custom agent with large header size to handle Printables' oversized cookies
 const agent = new Agent({
@@ -141,7 +141,8 @@ async function fetchBatch(categoryId, limit, offset) {
       return data.data.searchPrints2;
     } catch (err) {
       if (attempt === MAX_RETRIES) throw err;
-      await delay(1000 * attempt);
+      const backoff = 2000 * attempt;
+      await delay(backoff);
     }
   }
 }
@@ -167,91 +168,102 @@ export default async function main({ req, res, log, error }) {
   let totalFetched = 0;
   let totalSaved = 0;
   let totalSkipped = 0;
+  let totalFailed = 0;
 
   for (const category of CATEGORIES) {
     log(`\n=== Category: ${category.name} (ID: ${category.id}) ===`);
 
     let offset = 0;
     let hasMore = true;
+    let consecutiveErrors = 0;
 
     while (hasMore) {
+      let result;
       try {
-        const result = await fetchBatch(category.id, BATCH_SIZE, offset);
-        const items = result.items;
+        result = await fetchBatch(category.id, BATCH_SIZE, offset);
+      } catch (err) {
+        consecutiveErrors++;
+        error(`Failed to fetch at offset ${offset}: ${err.message}`);
 
-        if (offset === 0) {
-          log(`Total available: ${result.totalCount}`);
-        }
-
-        if (items.length === 0) {
+        if (consecutiveErrors >= 3) {
+          error(`3 consecutive fetch failures — skipping rest of category`);
           hasMore = false;
           break;
         }
 
-        log(`Fetched ${items.length} at offset ${offset}`);
-        totalFetched += items.length;
+        // Skip this batch but try the next offset
+        log(`Skipping batch at offset ${offset}, trying next...`);
+        offset += BATCH_SIZE;
+        await delay(5000);
+        continue;
+      }
 
-        for (const item of items) {
-          const slug = `${item.id}-${item.slug}`;
+      consecutiveErrors = 0;
+      const items = result.items;
 
-          // Check if model already exists by slug
-          const existing = await databases.listDocuments(databaseId, collectionId, [
-            Query.equal("slug", slug),
-            Query.limit(1),
-          ]);
+      if (offset === 0) {
+        log(`Total available: ${result.totalCount}`);
+      }
 
-          if (existing.total > 0) {
+      if (items.length === 0) {
+        hasMore = false;
+        break;
+      }
+
+      log(`Fetched ${items.length} at offset ${offset}`);
+      totalFetched += items.length;
+
+      for (const item of items) {
+        const slug = `${item.id}-${item.slug}`;
+
+        const thumbnailUrl = item.image?.filePath
+          ? `${PRINTABLES_CDN}/${item.image.filePath}`
+          : "";
+
+        const previewImages = (item.images || [])
+          .slice(0, 5)
+          .map((img) => `${PRINTABLES_CDN}/${img.filePath}`);
+
+        try {
+          await databases.createDocument(databaseId, collectionId, "unique()", {
+            title: item.name,
+            slug,
+            description: stripHtml(item.description || ""),
+            author: item.user?.publicUsername || "Unknown",
+            category: category.name,
+            thumbnailUrl,
+            previewImages: JSON.stringify(previewImages),
+            likesCount: item.likesCount || 0,
+            downloadCount: item.downloadCount || 0,
+            printablesUrl: `https://www.printables.com/model/${item.id}-${item.slug}`,
+          });
+          totalSaved++;
+        } catch (err) {
+          if (err.message?.includes("Document with the requested ID already exists") ||
+              err.code === 409 || err.type === "document_already_exists") {
             totalSkipped++;
-            continue;
-          }
-
-          const thumbnailUrl = item.image?.filePath
-            ? `${PRINTABLES_CDN}/${item.image.filePath}`
-            : "";
-
-          const previewImages = (item.images || [])
-            .slice(0, 5)
-            .map((img) => `${PRINTABLES_CDN}/${img.filePath}`);
-
-          try {
-            await databases.createDocument(databaseId, collectionId, "unique()", {
-              title: item.name,
-              slug,
-              description: stripHtml(item.description || ""),
-              author: item.user?.publicUsername || "Unknown",
-              category: category.name,
-              thumbnailUrl,
-              previewImages: JSON.stringify(previewImages),
-              likesCount: item.likesCount || 0,
-              downloadCount: item.downloadCount || 0,
-              printablesUrl: `https://www.printables.com/model/${item.id}-${item.slug}`,
-            });
-            totalSaved++;
-          } catch (err) {
+          } else {
+            totalFailed++;
             error(`Failed to save "${item.name}": ${err.message}`);
           }
         }
+      }
 
-        offset += BATCH_SIZE;
+      offset += BATCH_SIZE;
 
-        // Stop if we've gone past the total or hit the API cap
-        if (offset >= result.totalCount || offset >= 10000) {
-          hasMore = false;
-        }
-
-        // Rate limit between batches
-        await delay(DELAY_MS);
-      } catch (err) {
-        error(`Failed at offset ${offset}: ${err.message}`);
-        // On error, skip to next category
+      // Stop if we've gone past the total or hit the API cap
+      if (offset >= result.totalCount || offset >= 10000) {
         hasMore = false;
       }
+
+      // Rate limit between batches
+      await delay(DELAY_MS);
     }
 
-    log(`Category done. Running totals — saved: ${totalSaved}, skipped: ${totalSkipped}`);
+    log(`Category done. Running totals — saved: ${totalSaved}, skipped: ${totalSkipped}, failed: ${totalFailed}`);
   }
 
-  const summary = `Fetched ${totalFetched} models, saved ${totalSaved} new, skipped ${totalSkipped} existing`;
+  const summary = `Fetched ${totalFetched} models, saved ${totalSaved} new, skipped ${totalSkipped} existing, ${totalFailed} failed`;
   log(`\n=== DONE === ${summary}`);
 
   return res.json({
@@ -259,6 +271,7 @@ export default async function main({ req, res, log, error }) {
     totalFetched,
     totalSaved,
     totalSkipped,
+    totalFailed,
     message: summary,
   });
 }
