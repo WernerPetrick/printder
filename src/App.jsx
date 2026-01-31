@@ -6,6 +6,7 @@ import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import SwipePage from "./pages/SwipePage";
 import FavoritesPage from "./pages/FavoritesPage";
+import PrintsPage from "./pages/PrintsPage";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           >
             <Route path="/swipe" element={<SwipePage />} />
             <Route path="/favorites" element={<FavoritesPage />} />
+            <Route path="/prints" element={<PrintsPage />} />
           </Route>
         </Routes>
       </AuthProvider>

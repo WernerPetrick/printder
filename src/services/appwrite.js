@@ -1,4 +1,4 @@
-import { Client, Account, Databases, Query } from "appwrite";
+import { Client, Account, Databases, Query, Permission, Role } from "appwrite";
 
 const client = new Client();
 
@@ -71,13 +71,43 @@ export async function getUserFavorites(userId, limit = 25, offset = 0) {
 }
 
 export async function createSwipe(userId, modelId, action) {
-  return databases.createDocument(DATABASE_ID, SWIPES_COLLECTION_ID, "unique()", {
-    userId,
-    modelId,
-    action,
-  });
+  return databases.createDocument(
+    DATABASE_ID,
+    SWIPES_COLLECTION_ID,
+    "unique()",
+    { userId, modelId, action },
+    [
+      Permission.read(Role.user(userId)),
+      Permission.delete(Role.user(userId)),
+    ]
+  );
 }
 
 export async function getModelById(modelId) {
   return databases.getDocument(DATABASE_ID, MODELS_COLLECTION_ID, modelId);
+}
+
+export async function deleteSwipe(swipeId) {
+  return databases.deleteDocument(DATABASE_ID, SWIPES_COLLECTION_ID, swipeId);
+}
+
+export async function getUserPrints(userId, limit = 25, offset = 0) {
+  return databases.listDocuments(DATABASE_ID, SWIPES_COLLECTION_ID, [
+    Query.equal("userId", userId),
+    Query.equal("action", "printed"),
+    Query.orderDesc("$createdAt"),
+    Query.limit(limit),
+    Query.offset(offset),
+  ]);
+}
+
+export async function getUserPrintedModelIds(userId) {
+  const result = await databases.listDocuments(DATABASE_ID, SWIPES_COLLECTION_ID, [
+    Query.equal("userId", userId),
+    Query.equal("action", "printed"),
+    Query.limit(1000),
+  ]);
+  const map = new Map();
+  result.documents.forEach((doc) => map.set(doc.modelId, doc.$id));
+  return map;
 }
