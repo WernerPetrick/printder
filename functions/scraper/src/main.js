@@ -170,7 +170,11 @@ export default async function main({ req, res, log, error }) {
   let totalSkipped = 0;
   let totalFailed = 0;
 
-  for (const category of CATEGORIES) {
+  // Start from Medical Tools to resume after power outage
+  const startFromIndex = CATEGORIES.findIndex(c => c.id === "99");
+  const categoriesToProcess = CATEGORIES.slice(startFromIndex);
+
+  for (const category of categoriesToProcess) {
     log(`\n=== Category: ${category.name} (ID: ${category.id}) ===`);
 
     let offset = 0;
@@ -216,9 +220,26 @@ export default async function main({ req, res, log, error }) {
       for (const item of items) {
         const slug = `${item.id}-${item.slug}`;
 
+        // Check if model already exists by slug
+        try {
+          const existing = await databases.listDocuments(databaseId, collectionId, [
+            Query.equal("slug", slug),
+            Query.limit(1),
+          ]);
+
+          if (existing.total > 0) {
+            totalSkipped++;
+            continue;
+          }
+        } catch (err) {
+          error(`Failed to check slug "${slug}": ${err.message}`);
+        }
+
         const thumbnailUrl = item.image?.filePath
           ? `${PRINTABLES_CDN}/${item.image.filePath}`
           : "";
+
+        if (!thumbnailUrl) continue;
 
         const previewImages = (item.images || [])
           .slice(0, 5)
@@ -239,16 +260,12 @@ export default async function main({ req, res, log, error }) {
           });
           totalSaved++;
         } catch (err) {
-          if (err.message?.includes("Document with the requested ID already exists") ||
-              err.code === 409 || err.type === "document_already_exists") {
-            totalSkipped++;
-          } else {
-            totalFailed++;
-            error(`Failed to save "${item.name}": ${err.message}`);
-          }
+          totalFailed++;
+          error(`Failed to save "${item.name}": ${err.message}`);
         }
       }
 
+      log(`  Batch result — saved: ${totalSaved}, skipped: ${totalSkipped}, failed: ${totalFailed}`);
       offset += BATCH_SIZE;
 
       // Stop if we've gone past the total or hit the API cap

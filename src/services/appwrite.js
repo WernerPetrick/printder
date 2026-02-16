@@ -34,23 +34,96 @@ export async function getCurrentUser() {
 
 // Database helpers
 export async function getModels({ category = null, limit = 10, offset = 0 }) {
-  const queries = [Query.limit(limit), Query.offset(offset), Query.orderDesc("$createdAt")];
+  const queries = [Query.limit(limit), Query.offset(offset)];
 
   if (category) {
     queries.push(Query.equal("category", category));
+    queries.push(Query.orderDesc("$createdAt"));
+  } else {
+    // Use likesCount descending so "All" shows popular models from mixed categories
+    queries.push(Query.orderDesc("likesCount"));
   }
 
   return databases.listDocuments(DATABASE_ID, MODELS_COLLECTION_ID, queries);
 }
 
-export async function getCategories() {
-  const result = await databases.listDocuments(DATABASE_ID, MODELS_COLLECTION_ID, [
-    Query.limit(100),
-    Query.select(["category"]),
+export function getCategories() {
+  return Promise.resolve([
+    "2D Plates & Logos",
+    "Action Figures & Statues",
+    "Accessories",
+    "Animals",
+    "Anycubic Parts & Upgrades",
+    "Architecture & Urbanism",
+    "Audio",
+    "Automotive",
+    "Autumn & Halloween",
+    "Bambu Lab Parts & Upgrades",
+    "Bathroom",
+    "Bedroom",
+    "Board Games",
+    "Building Toys",
+    "Characters & Monsters",
+    "Chemistry & Biology",
+    "Computers",
+    "Cosplay & Costumes",
+    "Creality Parts & Upgrades",
+    "Electronics",
+    "Engineering",
+    "Garage",
+    "Haptic Models",
+    "Historical Context",
+    "Home Decor",
+    "Home Medical Tools",
+    "Indoor Sports",
+    "Kitchen",
+    "Living Room",
+    "Masks",
+    "Math",
+    "Mechanical Parts",
+    "Medical Tools",
+    "Men",
+    "Miniature Gaming Accessories",
+    "Music",
+    "Office",
+    "Organizers",
+    "Other Costume Accessories",
+    "Other Fashion Accessories",
+    "Other Gadgets",
+    "Other House Equipment",
+    "Other Ideas",
+    "Other Learning",
+    "Other Printer Parts & Upgrades",
+    "Other Sports",
+    "Other Toys & Games",
+    "Outdoor & Garden",
+    "Outdoor Sports",
+    "Outdoor Toys",
+    "People",
+    "Pets",
+    "Photo & Video",
+    "Physics & Astronomy",
+    "Portable Devices",
+    "Props",
+    "Props & Terrains",
+    "Prusa Parts & Upgrades",
+    "Puzzles & Brain-teasers",
+    "RC & Robotics",
+    "Sculptures",
+    "Spring & Easter",
+    "Summer",
+    "Test Models",
+    "Tools",
+    "Vehicles",
+    "Vehicles & Machines",
+    "Video Games",
+    "Virtual Reality",
+    "Voron Parts & Upgrades",
+    "Wall-mounted",
+    "Winter & Christmas",
+    "Winter Sports",
+    "Women",
   ]);
-
-  const categories = [...new Set(result.documents.map((doc) => doc.category))];
-  return categories.filter(Boolean).sort();
 }
 
 export async function getUserSwipes(userId) {
