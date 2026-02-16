@@ -13,6 +13,7 @@ import ErrorBoundary from "./components/ErrorPages/ErrorBoundary";
 function TestError() {
   throw new Error("Test 500 error");
 }
+import PrintsPage from "./pages/PrintsPage";
 
 function App() {
   return (
@@ -35,7 +36,8 @@ function App() {
             >
               <Route path="/swipe" element={<SwipePage />} />
               <Route path="/favorites" element={<FavoritesPage />} />
-            </Route>
+              <Route path="/prints" element={<PrintsPage />} />
+          </Route>
 
             {/* 404 Catch-all route - must be last */}
             <Route path="*" element={<NotFoundPage />} />

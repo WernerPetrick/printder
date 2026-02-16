@@ -1,28 +1,22 @@
 import { useState, useEffect } from "react";
-import { getUserFavorites, getModelById, deleteSwipe, getUserPrintedModelIds, createSwipe } from "../../services/appwrite";
+import { getUserPrints, getModelById, deleteSwipe } from "../../services/appwrite";
 import { useAuth } from "../../hooks/useAuth";
-import printerIcon from "../../assets/3d-printer.png";
-import "./FavoritesList.css";
+import "./PrintsList.css";
 
-export default function FavoritesList() {
+export default function PrintsList() {
   const { user } = useAuth();
-  const [favorites, setFavorites] = useState([]);
+  const [prints, setPrints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [confirmModel, setConfirmModel] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
-  const [printedMap, setPrintedMap] = useState(new Map());
-  const [printing, setPrinting] = useState(null);
 
   useEffect(() => {
     if (!user) return;
 
-    async function loadFavorites() {
+    async function loadPrints() {
       try {
-        const [swipes, printed] = await Promise.all([
-          getUserFavorites(user.$id),
-          getUserPrintedModelIds(user.$id),
-        ]);
+        const swipes = await getUserPrints(user.$id);
         const models = await Promise.all(
           swipes.documents.map(async (swipe) => {
             try {
@@ -33,16 +27,15 @@ export default function FavoritesList() {
             }
           })
         );
-        setFavorites(models.filter(Boolean));
-        setPrintedMap(printed);
+        setPrints(models.filter(Boolean));
       } catch (err) {
-        console.error("Failed to load favorites:", err);
+        console.error("Failed to load prints:", err);
       } finally {
         setLoading(false);
       }
     }
 
-    loadFavorites();
+    loadPrints();
   }, [user]);
 
   function openConfirm(model) {
@@ -56,81 +49,51 @@ export default function FavoritesList() {
     setDeleteError(null);
     try {
       await deleteSwipe(confirmModel._swipeId);
-      setFavorites((prev) => prev.filter((m) => m.$id !== confirmModel.$id));
+      setPrints((prev) => prev.filter((m) => m.$id !== confirmModel.$id));
       setConfirmModel(null);
     } catch (err) {
-      console.error("Failed to remove favorite:", err);
+      console.error("Failed to remove print:", err);
       setDeleteError("Failed to remove. You may need to enable Delete permission on the swipes collection in Appwrite.");
     } finally {
       setDeleting(false);
     }
   }
 
-  async function handlePrintToggle(model) {
-    if (printing) return;
-    setPrinting(model.$id);
-    try {
-      if (printedMap.has(model.$id)) {
-        await deleteSwipe(printedMap.get(model.$id));
-        setPrintedMap((prev) => {
-          const next = new Map(prev);
-          next.delete(model.$id);
-          return next;
-        });
-      } else {
-        const doc = await createSwipe(user.$id, model.$id, "printed");
-        setPrintedMap((prev) => new Map(prev).set(model.$id, doc.$id));
-      }
-    } catch (err) {
-      console.error("Failed to toggle print status:", err);
-    } finally {
-      setPrinting(null);
-    }
-  }
-
   if (loading) {
-    return <div className="favorites-loading">Loading your prints...</div>;
+    return <div className="prints-loading">Loading your prints...</div>;
   }
 
-  if (favorites.length === 0) {
+  if (prints.length === 0) {
     return (
-      <div className="favorites-empty">
-        <h3>No favorites yet</h3>
-        <p>Start swiping to save models you like!</p>
+      <div className="prints-empty">
+        <h3>No prints yet</h3>
+        <p>Mark models as printed from your favourites!</p>
       </div>
     );
   }
 
   return (
     <>
-      <div className="favorites-grid">
-        {favorites.map((model) => (
-          <div key={model.$id} className="favorites-card">
+      <div className="prints-grid">
+        {prints.map((model) => (
+          <div key={model.$id} className="prints-card">
             <button
-              className={`favorites-card__print ${printedMap.has(model.$id) ? "favorites-card__print--active" : ""}`}
-              onClick={() => handlePrintToggle(model)}
-              disabled={printing === model.$id}
-              aria-label={printedMap.has(model.$id) ? "Remove from prints" : "Mark as printed"}
-            >
-              <img src={printerIcon} alt="Print" />
-            </button>
-            <button
-              className="favorites-card__delete"
+              className="prints-card__delete"
               onClick={() => openConfirm(model)}
-              aria-label="Remove from favorites"
+              aria-label="Remove from prints"
             >
               &times;
             </button>
             <a
-              className="favorites-card__link"
+              className="prints-card__link"
               href={model.printablesUrl}
               target="_blank"
               rel="noopener noreferrer"
             >
-              <div className="favorites-card__image">
+              <div className="prints-card__image">
                 <img src={model.thumbnailUrl} alt={model.title} />
               </div>
-              <div className="favorites-card__info">
+              <div className="prints-card__info">
                 <h4>{model.title}</h4>
                 <p>by {model.author}</p>
               </div>
@@ -142,10 +105,10 @@ export default function FavoritesList() {
       {confirmModel && (
         <div className="confirm-overlay" onClick={() => !deleting && setConfirmModel(null)}>
           <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
-            <h3 className="confirm-modal__title">Remove Favourite?</h3>
+            <h3 className="confirm-modal__title">Remove Print?</h3>
             <p className="confirm-modal__text">
               <strong>{confirmModel.title}</strong> will be removed from your
-              favorites. This cannot be undone.
+              prints. This cannot be undone.
             </p>
             {deleteError && (
               <p className="confirm-modal__error">{deleteError}</p>

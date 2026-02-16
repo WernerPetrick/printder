@@ -14,7 +14,10 @@ export default function Layout() {
             Swipe
           </NavLink>
           <NavLink to="/favorites" className="layout__link">
-            Favorites
+            Favourites
+          </NavLink>
+          <NavLink to="/prints" className="layout__link">
+            Prints
           </NavLink>
         </nav>
         <div className="layout__user">
